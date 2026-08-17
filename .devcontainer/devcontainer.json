@@ -1,0 +1,30 @@
+{
+  "name": "Razorbotz ROS 2 Environment",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "runArgs": [
+    "--net=host",
+    "--ipc=host",
+    "--env=DISPLAY=${env:DISPLAY}",
+    "--env=QT_X11_NO_MITSHM=1",
+    "--volume=/tmp/.X11-unix:/tmp/.X11-unix:rw",
+    "--gpus=all"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-iot.vscode-ros",
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack",
+        "ms-python.python",
+        "twxs.cmake"
+      ]
+    }
+  },
+  "remoteEnv": {
+    "LIBGL_ALWAYS_SOFTWARE": "0"
+  },
+  "postCreateCommand": "bash -c 'cd /workspaces/${localWorkspaceFolderBasename}/C++/robotcontrollerclient && mkdir -p build && cd build && cmake .. && make -j$(nproc)'"
+}
