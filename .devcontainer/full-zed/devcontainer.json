@@ -1,8 +1,8 @@
 {
-  "name": "Razorbotz ROS 2 Environment",
+  "name": "Razorbotz ROS 2 Environment - With ZED",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".."
+    "context": "../.."
   },
   "runArgs": [
     "--net=host",
