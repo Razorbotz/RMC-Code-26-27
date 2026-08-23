@@ -26,5 +26,5 @@
   "remoteEnv": {
     "LIBGL_ALWAYS_SOFTWARE": "0"
   },
-  "postCreateCommand": "bash -c 'cd /workspaces/${localWorkspaceFolderBasename}/C++/robotcontrollerclient && mkdir -p build && cd build && cmake .. && make -j$(nproc)'"
+  "postCreateCommand": ""
 }

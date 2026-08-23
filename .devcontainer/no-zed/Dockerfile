@@ -28,6 +28,8 @@ RUN apt-get update && apt-get install -y \
     libopencv-dev python3-opencv \
     libgtkmm-3.0-dev libsdl2-dev \
     zlib1g-dev libcairo2-dev \
+    nlohmann-json3-dev \
+    libwebsocketpp-dev libasio-dev \
     libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
     git wget curl \
     && rm -rf /var/lib/apt/lists/*
@@ -42,7 +44,7 @@ ENV GAZEBO_MODEL_PATH="/workspaces/${localWorkspaceFolderBasename}/ROS2/shovel/s
 
 # Add source scripts to bashrc
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
-RUN echo "source /workspaces/SoftwareDevelopment/C++/robotcontrollerclient/control_completion.sh" >> /root/.bashrc
+RUN echo "source /workspaces/RMC-Code-25-26/C++/robotcontrollerclient/control_completion.sh" >> /root/.bashrc
 
 # Default command
 CMD ["bash"]
