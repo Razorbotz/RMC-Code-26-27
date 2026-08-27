@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Razorbotz Docker Development Helper Script
-WORKSPACE="/workspaces/RMC-Code-25-26"
+WORKSPACE="/workspaces/RMC-Code-26-27"
 CPP_DIR="$WORKSPACE/C++/robotcontrollerclient"
 ROS_DIR="$WORKSPACE/ROS2"
 
