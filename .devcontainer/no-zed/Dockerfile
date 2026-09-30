@@ -11,9 +11,12 @@ RUN apt-get update && apt-get install -y \
     ros-humble-ros2-controllers \
     ros-humble-aruco-ros \
     && rm -rf /var/lib/apt/lists/*
-
+RUN curl -s --compressed -o /usr/share/keyrings/ctr-pubkey.gpg "https://deb.ctr-electronics.com/ctr-pubkey.gpg" && \
+    curl -s --compressed -o /etc/apt/sources.list.d/ctr2026.list "https://deb.ctr-electronics.com/ctr2026.list"
+    
 # Install C++, Python, OpenCV, GTK, Qt5, and other build dependencies
 RUN apt-get update && apt-get install -y \
+    phoenix6 \
     build-essential cmake pkg-config \
     python3 python3-dev python3-pip python3-numpy \
     libprotoc-dev protobuf-compiler libprotobuf-dev \
@@ -32,6 +35,7 @@ RUN apt-get update && apt-get install -y \
     libwebsocketpp-dev libasio-dev \
     libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
     git wget curl \
+    ros-humble-vision-msgs \
     && rm -rf /var/lib/apt/lists/*
 
 # COPY custom CTRE libraries into the image
@@ -44,7 +48,15 @@ ENV GAZEBO_MODEL_PATH="/workspaces/${localWorkspaceFolderBasename}/ROS2/shovel/s
 
 # Add source scripts to bashrc
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
-RUN echo "source /workspaces/RMC-Code-25-26/C++/robotcontrollerclient/control_completion.sh" >> /root/.bashrc
+# Add dynamic tab-completion for the run.sh helper script
+RUN printf '%s\n' \
+    '_run_sh_completion() { ' \
+        'if [[ -f ./run.sh ]]; then' \
+        '    local opts=$(grep -oE '\[\[ "\$1" == "--[a-zA-Z0-9_-]+"' ./run.sh | grep -oE -e '--[a-zA-Z0-9_-]+')' \
+        '    COMPREPLY=( $(compgen -W "${opts}" -- ${COMP_WORDS[COMP_CWORD]}) )' \
+        'fi' \
+    '}' \
+    'complete -F _run_sh_completion run.sh ./run.sh' >> /root/.bashrc
 
 # Default command
 CMD ["bash"]

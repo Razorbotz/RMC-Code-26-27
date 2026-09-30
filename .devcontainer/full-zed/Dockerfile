@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y software-properties-common curl gnupg l
     curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
+RUN curl -s --compressed -o /usr/share/keyrings/ctr-pubkey.gpg "https://deb.ctr-electronics.com/ctr-pubkey.gpg" && \
+    curl -s --compressed -o /etc/apt/sources.list.d/ctr2026.list "https://deb.ctr-electronics.com/ctr2026.list"
+    
 # 2. Install ROS 2 Desktop, Control, and Aruco packages
 RUN apt-get update && apt-get install -y \
     ros-humble-desktop \
@@ -22,6 +25,7 @@ RUN apt-get update && apt-get install -y \
 
 # 3. Install Build Dependencies (OpenCV, GTK, Qt5, etc.)
 RUN apt-get update && apt-get install -y \
+    phoenix6 \
     build-essential cmake pkg-config \
     python3 python3-dev python3-pip python3-numpy \
     libprotoc-dev protobuf-compiler libprotobuf-dev \
@@ -40,6 +44,7 @@ RUN apt-get update && apt-get install -y \
     nlohmann-json3-dev \
     libwebsocketpp-dev libasio-dev \
     git wget curl \
+    ros-humble-vision-msgs \
     && rm -rf /var/lib/apt/lists/*
 
 # 4. Set up Environment Variables
@@ -47,6 +52,14 @@ ENV GAZEBO_MODEL_PATH="/workspaces/${localWorkspaceFolderBasename}/ROS2/shovel/s
 
 # 5. Add source scripts to bashrc
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
-RUN echo "source /workspaces/RMC-Code-25-26/C++/robotcontrollerclient/control_completion.sh" >> /root/.bashrc
-
+# Add dynamic tab-completion for the run.sh helper script
+RUN printf '%s\n' \
+    '_run_sh_completion() { ' \
+        'if [[ -f ./run.sh ]]; then' \
+        '    local opts=$(grep -oE '\[\[ "\$1" == "--[a-zA-Z0-9_-]+"' ./run.sh | grep -oE -e '--[a-zA-Z0-9_-]+')' \
+        '    COMPREPLY=( $(compgen -W "${opts}" -- ${COMP_WORDS[COMP_CWORD]}) )' \
+        'fi' \
+    '}' \
+    'complete -F _run_sh_completion run.sh ./run.sh' >> /root/.bashrc
+    
 CMD ["bash"]

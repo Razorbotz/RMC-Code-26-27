@@ -1,7 +1,13 @@
 #!/bin/bash
 
+if [[ -f /.dockerenv ]]; then
+    SYS_ENV="docker"
+else
+    SYS_ENV="native"
+fi
+
 # Razorbotz Docker Development Helper Script
-WORKSPACE="/workspaces/RMC-Code-26-27"
+WORKSPACE="/workspaces/SoftwareDevelopment"
 CPP_DIR="$WORKSPACE/C++/robotcontrollerclient"
 ROS_DIR="$WORKSPACE/ROS2"
 
@@ -13,10 +19,11 @@ show_help() {
     echo "  --edit       : Opens core C++ control files in VS Code."
     echo "  --dash       : Launches the dashboard GUI."
     echo "  --build-cpp  : Compiles the C++ robot controller client."
-    echo "  --build-ros  : Compiles the ROS 2 workspace (Talos & Sisyphus nodes)."
+    echo "  --build-ros  : Compiles the ROS 2 workspace (Accepts extra colcon flags like --packages-ignore zed_tracking)."
     echo "  --update     : Pulls the latest testing branch for all submodules."
     echo "  --sim        : Launches Gazebo simulation and Foxglove bridge."
     echo "  --help       : Shows this menu."
+    echo "  --test       : TEST"
 }
 
 # Show help menu if no arguments are passed
@@ -48,12 +55,21 @@ if [[ "$1" == "--build-cpp" ]]; then
     make -j$(nproc)
 fi
 
-# Compiles the ROS 2 workspace and sources it
+# Compiles the ROS 2 workspace and accepts extra colcon arguments
 if [[ "$1" == "--build-ros" ]]; then
-    echo "[INFO] Building ROS 2 Workspace..."
+    echo "[INFO] Building ROS 2 Workspace for $SYS_ENV environment..."
     cd "$ROS_DIR" || exit 1
-    colcon build --symlink-install
-    echo "[INFO] Build complete. Run 'source install/setup.bash' to use the workspace."
+    
+    # 'shift' removes the "--build-ros" argument so we can pass the rest to colcon
+    shift 
+    
+    colcon build \
+        --build-base "build_$SYS_ENV" \
+        --install-base "install_$SYS_ENV" \
+        --log-base "log_$SYS_ENV" \
+        --symlink-install "$@"
+    
+    echo "[INFO] Build complete. Run 'source install_$SYS_ENV/setup.bash' to use the workspace."
 fi
 
 # Automatically syncs both submodules to the latest testing branch
@@ -76,13 +92,9 @@ if [[ "$1" == "--sim" ]]; then
     source install/setup.bash
     
     echo "[INFO] Starting Gazebo Simulation..."
-    # Note: Replace 'your_gazebo_launch_file.launch.py' with your actual launch file
-    ros2 launch your_package_name your_gazebo_launch_file.launch.py &
-    
-    echo "[INFO] Starting Foxglove WebSocket Bridge..."
-    ros2 run foxglove_bridge foxglove_bridge_node &
-    
-    echo "[INFO] Simulation running in background. Press Ctrl+C to terminate."
-    # Keep the script running to keep the background processes alive
-    wait
+    ros2 launch sim artemis_sim.launch.py
+fi
+
+if [[ "$1" == "--test" ]]; then
+    echo "test"
 fi

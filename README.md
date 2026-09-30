@@ -16,8 +16,9 @@ We use a **Git Submodule** architecture. This repository acts as a wrapper that 
 Because of this, a standard git clone will leave those folders empty. You **must** clone the repository using the recursive flag:
 
 ```bash
-git clone --recurse-submodules https://github.com/Razorbotz/RMC-Code-25-26.git
-cd RMC-Code-25-26
+git clone --recurse-submodules https://github.com/Razorbotz/RMC-Code-26-27.git
+mv RMC-Code-26-27
+cd SoftwareDevelopment
 ```
 *(If you forgot the flag, run `git submodule update --init --recursive` inside the folder to pull the code).*
 
