@@ -11,38 +11,7 @@ This page is intended to provide a starting point and overview of the project. I
 * [Resources](#resources)
 
 ## Getting Started (Cloning the Code)
-We use a **Git Submodule** architecture. This repository acts as a wrapper that contains our two active codebases (`ROS2` and `C++`). 
-
-Because of this, a standard git clone will leave those folders empty. You **must** clone the repository using the recursive flag:
-
-```bash
-git clone --recurse-submodules https://github.com/Razorbotz/RMC-Code-26-27.git
-mv RMC-Code-26-27
-cd SoftwareDevelopment
-```
-*(If you forgot the flag, run `git submodule update --init --recursive` inside the folder to pull the code).*
-
-### Switching to the Testing Branch
-By default, git submodules check out in a detached state. We primarily develop on the `testing` branch. To immediately snap both the ROS2 and C++ codebases to the testing branch, run this single command from the root of the repository:
-
-```bash
-git submodule foreach git checkout testing
-```
-
-## Starting the Docker Environment
-To guarantee everyone has the exact same setup and prevent "it works on my machine" bugs, we use Docker and VS Code Dev Containers. You do not need to manually install ROS 2 on your host machine.
-
-**Prerequisites on your host machine:**
-1. [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Running and configured for WSL 2 on Windows)
-2. [Visual Studio Code](https://code.visualstudio.com/)
-3. The **Dev Containers** extension in VS Code.
-
-**To launch the environment:**
-1. Open the `RMC-Code-25-26` folder in VS Code.
-2. A pop-up will appear in the bottom right asking if you want to **"Reopen in Container"**. Click it. (If you don't see it, press `Ctrl+Shift+P` and search for *Dev Containers: Rebuild and Reopen in Container*).
-3. VS Code will build the environment. The first time will take a few minutes. 
-
-Once the integrated VS Code terminal opens as `root@...:/workspaces/RMC-Code-25-26#`, you are running inside a fully configured Ubuntu 22.04 container with ROS 2 Humble pre-installed!
+To begin the project, run the commands found in the [Install repository](https://github.com/Razorbotz/Install). This will install all dependencies and configure your environment to begin developing on the codebase. 
 
 ## Building and Running Examples
 
@@ -51,14 +20,14 @@ Use the integrated terminal inside VS Code to compile your code.
 
 **For the ROS 2 Workspace:**
 ```bash
-cd /workspaces/RMC-Code-25-26/ROS2
+cd /workspaces/RMC-Code-26-27/ROS2
 colcon build --symlink-install
 source install/setup.bash
 ```
 
 **For the C++ Client:**
 ```bash
-cd /workspaces/RMC-Code-25-26/C++/robotcontrollerclient/build
+cd /workspaces/RMC-Code-26-27/C++/robotcontrollerclient/build
 make -j$(nproc)
 ```
 
