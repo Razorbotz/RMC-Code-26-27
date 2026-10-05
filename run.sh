@@ -7,10 +7,9 @@ else
 fi
 
 # Razorbotz Docker Development Helper Script
-WORKSPACE="/workspaces/SoftwareDevelopment"
+WORKSPACE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CPP_DIR="$WORKSPACE/C++/robotcontrollerclient"
-ROS_DIR="$WORKSPACE/ROS2"
-
+ROS_DIR="$WORKSPACE/ROS2/shovel"
 show_help() {
     echo "Razorbotz RMC Development Helper"
     echo "Usage: ./run.sh [COMMAND]"
@@ -26,75 +25,89 @@ show_help() {
     echo "  --test       : TEST"
 }
 
-# Show help menu if no arguments are passed
-if [[ "$1" == "" || "$1" == "--help" ]]; then
-    show_help
-    exit 0
-fi
-
-# Opens up the core files in the host's VS Code window
-if [[ "$1" == "--edit" ]]; then
-    cd "$CPP_DIR/src" || exit 1
-    echo "[INFO] Opening files in VS Code..."
-    code BinaryMessage.cpp control.cpp Speedometer.cpp ConfigDefinitions.cpp
-fi
-
-# Opens up the dashboard GUI via X11 forwarding
-if [[ "$1" == "--dash" ]]; then
-    cd "$CPP_DIR/build" || { echo "Run --build-cpp first!"; exit 1; }
-    echo "[INFO] Launching dashboard..."
-    ./control --init
-fi
-
-# Smart C++ Build: Creates the folder if it doesn't exist, then compiles
-if [[ "$1" == "--build-cpp" ]]; then
-    echo "[INFO] Building C++ Client..."
-    mkdir -p "$CPP_DIR/build"
-    cd "$CPP_DIR/build" || exit 1
-    cmake ..
-    make -j$(nproc)
-fi
-
-# Compiles the ROS 2 workspace and accepts extra colcon arguments
-if [[ "$1" == "--build-ros" ]]; then
-    echo "[INFO] Building ROS 2 Workspace for $SYS_ENV environment..."
-    cd "$ROS_DIR" || exit 1
-    
-    # 'shift' removes the "--build-ros" argument so we can pass the rest to colcon
-    shift 
-    
-    colcon build \
-        --build-base "build_$SYS_ENV" \
-        --install-base "install_$SYS_ENV" \
-        --log-base "log_$SYS_ENV" \
-        --symlink-install "$@"
-    
-    echo "[INFO] Build complete. Run 'source install_$SYS_ENV/setup.bash' to use the workspace."
-fi
-
-# Automatically syncs both submodules to the latest testing branch
-if [[ "$1" == "--update" ]]; then
-    echo "[INFO] Updating submodules from remote testing branches..."
-    cd "$WORKSPACE" || exit 1
-    git submodule update --remote
-fi
-
-# Launches Gazebo and Foxglove WebSocket bridge
-if [[ "$1" == "--sim" ]]; then
-    cd "$ROS_DIR" || exit 1
-    
-    # Check if the workspace has been built
-    if [ ! -f "install/setup.bash" ]; then
-        echo "[ERROR] You must run --build-ros first."
+case "$1" in
+    ""|--help)
+        show_help
+        ;;
+ 
+    # Opens up the core files in VS Code
+    --edit)
+        cd "$CPP_DIR/src" || exit 1
+        echo "[INFO] Opening files in VS Code..."
+        code BinaryMessage.cpp control.cpp Speedometer.cpp ConfigDefinitions.cpp
+        ;;
+ 
+    # Launches the dashboard GUI
+    --dash)
+        cd "$CPP_DIR/build" || { echo "[ERROR] Run --build-cpp first!"; exit 1; }
+        shift
+        if [[ "$1" == "--sim" ]]; then
+            shift
+            echo "[INFO] Launching dashboard in sim mode (localhost)..."
+            ./control --init --wsl "$@"
+        else
+            echo "[INFO] Launching dashboard..."
+            ./control --init "$@"
+        fi
+        ;;
+ 
+    # Smart C++ Build: Creates the folder if it doesn't exist, then compiles
+    --build-cpp)
+        echo "[INFO] Building C++ Client..."
+        mkdir -p "$CPP_DIR/build"
+        cd "$CPP_DIR/build" || exit 1
+        cmake .. && make -j"$(nproc)"
+        ;;
+ 
+    # Compiles the ROS 2 workspace and accepts extra colcon arguments
+    --build-ros)
+        echo "[INFO] Building ROS 2 Workspace..."
+        cd "$ROS_DIR" || exit 1
+ 
+        if ! command -v colcon >/dev/null 2>&1; then
+            echo "[ERROR] colcon not found. Source your ROS 2 install first, e.g.:"
+            echo "        source /opt/ros/<distro>/setup.bash"
+            exit 1
+        fi
+ 
+        # 'shift' removes "--build-ros" so the rest can be passed to colcon
+        shift
+        colcon build --symlink-install "$@" || exit 1
+ 
+        echo "[INFO] Build complete. Run 'source $ROS_DIR/install/setup.bash' to use the workspace."
+        ;;
+ 
+    # Syncs submodules to the latest testing branch
+    --update)
+        echo "[INFO] Updating submodules from remote testing branches..."
+        cd "$WORKSPACE" || exit 1
+        git submodule update --remote
+        ;;
+ 
+    # Launches Gazebo and Foxglove WebSocket bridge
+    --sim)
+        cd "$ROS_DIR" || exit 1
+ 
+        if [[ ! -f "install/setup.bash" ]]; then
+            echo "[ERROR] You must run --build-ros first."
+            exit 1
+        fi
+ 
+        source install/setup.bash
+        shift
+        echo "[INFO] Starting simulation..."
+        # launch.py uses os.getcwd() to find sub-launch files, so it must run from $ROS_DIR
+        ros2 launch launch/launch.py robot:=sim "$@"
+        ;;
+ 
+    --test)
+        echo "test"
+        ;;
+ 
+    *)
+        echo "[ERROR] Unknown command: $1"
+        echo ""
+        show_help
         exit 1
-    fi
-    
-    source install/setup.bash
-    
-    echo "[INFO] Starting Gazebo Simulation..."
-    ros2 launch sim artemis_sim.launch.py
-fi
-
-if [[ "$1" == "--test" ]]; then
-    echo "test"
-fi
+        ;;
+esac
