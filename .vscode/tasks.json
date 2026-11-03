@@ -1,0 +1,110 @@
+{
+    "version": "2.0.0",
+    "inputs": [
+        {
+            "id": "dashMode",
+            "type": "pickString",
+            "description": "Select dashboard launch mode:",
+            "options": [
+                {
+                    "label": "Native",
+                    "value": ""
+                },
+                {
+                    "label": "Sim Mode (WSL / localhost)",
+                    "value": "--wsl"
+                }
+            ],
+            "default": ""
+        },
+        {
+            "id": "colconArgs",
+            "type": "promptString",
+            "description": "Extra colcon build flags (e.g., --packages-ignore zed_tracking). Leave blank for none.",
+            "default": ""
+        },
+        {
+            "id": "rosLaunchArgs",
+            "type": "promptString",
+            "description": "Extra ROS 2 launch arguments. Leave blank for none.",
+            "default": ""
+        }
+    ],
+    "tasks": [
+        {
+            "label": "Razorbotz: Edit C++ Core Files",
+            "type": "shell",
+            "command": "code BinaryMessage.cpp control.cpp Speedometer.cpp ConfigDefinitions.cpp",
+            "options": {
+                "cwd": "${workspaceFolder}/C++/robotcontrollerclient/src"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Razorbotz: Launch Dashboard GUI",
+            "type": "shell",
+            "command": "./control --init ${input:dashMode}",
+            "options": {
+                "cwd": "${workspaceFolder}/C++/robotcontrollerclient/build",
+                "env": {
+                    "GDK_BACKEND": "x11"
+                }
+            },
+            "problemMatcher": [],
+            "dependsOn": "Razorbotz: Build C++ Client"
+        },
+        {
+            "label": "Razorbotz: Build C++ Client",
+            "type": "shell",
+            "command": "mkdir -p build && cd build && cmake .. && make -j$(nproc)",
+            "options": {
+                "cwd": "${workspaceFolder}/C++/robotcontrollerclient"
+            },
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Razorbotz: Build ROS 2 Workspace",
+            "type": "shell",
+            "command": "colcon build --symlink-install ${input:colconArgs}",
+            "options": {
+                "cwd": "${workspaceFolder}/ROS2/shovel"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Razorbotz: Update Submodules",
+            "type": "shell",
+            "command": "git submodule update --remote",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Razorbotz: Launch ROS2 & Gazebo Sim",
+            "type": "shell",
+            "command": "bash -c 'source install/setup.bash && ros2 launch launch/launch.py robot:=sim ${input:rosLaunchArgs}'",
+            "options": {
+                "cwd": "${workspaceFolder}/ROS2/shovel"
+            },
+            "problemMatcher": [],
+            "dependsOn": "Razorbotz: Build ROS 2 Workspace"
+        },
+        {
+            "label": "Razorbotz: Test Command",
+            "type": "shell",
+            "command": "echo \"test\"",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

@@ -5,6 +5,7 @@ This page is intended to provide a starting point and overview of the project. I
 * [Repository Layout](#repository-layout)
 * [Getting Started](#getting-started)
 * [The run.sh Helper](#the-runsh-helper)
+- [VS Code Integration](#vs-code-integration)
 * [Running the Simulation](#running-the-simulation)
 * [Running on the Robot](#running-on-the-robot)
 * [Building Manually](#building-manually)
@@ -120,6 +121,24 @@ Some useful combinations:
 ```
 
 `--build-ros` needs ROS on your path. The install script adds `source /opt/ros/humble/setup.bash` to your `~/.bashrc`, so this works in any new terminal.
+
+## VS Code Integration
+If you are developing in Visual Studio Code, you can run the project's core commands directly from the editor without typing them in the terminal. The `run.sh` commands have been mapped natively into VS Code tasks.
+
+### Running a Task
+1. Open the Command Palette (`Ctrl+Shift+P` on Windows/Linux or `Cmd+Shift+P` on Mac).
+2. Type **Run Task** and press Enter.
+
+![Run Task Menu](imgs/RunTask.png)
+
+3. Select the task you want to run from the drop-down menu (e.g., `Razorbotz: Build ROS 2 Workspace` or `Razorbotz: Launch Dashboard GUI`).
+
+![Tasks Dropdown](imgs/Tasks.png)
+
+### Task Features
+- **Interactive Prompts:** Tasks like building ROS 2 or launching the dashboard will prompt you at the top of the screen for extra arguments (like selecting `--sim` mode or passing colcon flags).
+- **Automatic Dependencies:** Launching the simulation or dashboard will automatically trigger the necessary C++ or ROS 2 builds first if they are out of date.
+- **Default Build Shortcut:** You can press `Ctrl+Shift+B` (or `Cmd+Shift+B`) at any time to quickly trigger the default build task (`Razorbotz: Build ROS 2 Workspace`).
 
 ## Running the Simulation
 You need two terminals, both at the repo root.
